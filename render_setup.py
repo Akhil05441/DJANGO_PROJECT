@@ -1,7 +1,7 @@
 import os
 import django
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def main():
@@ -19,28 +19,42 @@ def main():
         User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
         print("Superuser 'admin' created automatically.")
 
-    # 4. Automatically create a default Movie and Show if none exist
-    if not Movie.objects.exists():
-        movie = Movie.objects.create(
-            title="Render Live Movie", 
-            genre="Action", 
-            duration_minutes=120, 
-            language="English"
-        )
-        
-        # Creating a timezone-aware datetime to prevent log warnings
-        naive_datetime = datetime.strptime("2026-06-15 18:00:00", "%Y-%m-%d %H:%M:%S")
-        aware_datetime = timezone.make_aware(naive_datetime)
-        
-        Show.objects.create(
-            movie=movie, 
-            screen_name="Main Screen", 
-            start_time=aware_datetime
-        )
-        print("Default Movie and Show created.")
+    # 4. List of 6 movies to add to the platform
+    movies_data = [
+        {"title": "The Dark Knight", "genre": "Action/Sci-Fi", "duration_minutes": 152, "language": "English"},
+        {"title": "Interstellar", "genre": "Sci-Fi/Drama", "duration_minutes": 169, "language": "English"},
+        {"title": "Inception", "genre": "Action/Sci-Fi", "duration_minutes": 148, "language": "English"},
+        {"title": "Avatar: The Way of Water", "genre": "Sci-Fi/Adventure", "duration_minutes": 192, "language": "English"},
+        {"title": "Spiderman: No Way Home", "genre": "Action/Adventure", "duration_minutes": 148, "language": "English"},
+        {"title": "The Avengers", "genre": "Action/Sci-Fi", "duration_minutes": 143, "language": "English"},
+    ]
 
-    # 5. Generate seats (Keep it outside the IF block if it checks all shows dynamically)
+    base_time = datetime.strptime("2026-06-15 18:00:00", "%Y-%m-%d %H:%M:%S")
+
+    # 5. Loop through and create movies and shows if they don't exist
+    for index, data in enumerate(movies_data):
+        if not Movie.objects.filter(title=data["title"]).exists():
+            movie = Movie.objects.create(
+                title=data["title"], 
+                genre=data["genre"], 
+                duration_minutes=data["duration_minutes"], 
+                language=data["language"]
+            )
+            
+            # Stagger show times by 2 hours so they don't look identical
+            show_time = base_time + timedelta(hours=index * 2)
+            aware_datetime = timezone.make_aware(show_time)
+            
+            Show.objects.create(
+                movie=movie, 
+                screen_name=f"Audi { (index % 3) + 1 }", 
+                start_time=aware_datetime
+            )
+            print(f"Created movie and show for: {data['title']}")
+
+    # 6. Run seat generation to make sure all newly created shows have seats ready
     generate_seats()
+    print("Seat verification and generation completed.")
 
 
 if __name__ == '__main__':

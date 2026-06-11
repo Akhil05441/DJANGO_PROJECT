@@ -125,5 +125,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Tells Render where to buil
 # IMPORTANT: Once you know your exact Render link, replace 'your-app-name' below
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com', 
-    'https://your-app-name.onrender.com'
+    'https://akhils-movie-app.onrender.com' # Use your exact new link here
 ]

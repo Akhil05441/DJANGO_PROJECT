@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Seats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .seat { width: 40px; height: 40px; margin: 5px; cursor: pointer; display: inline-block; text-align: center; line-height: 40px; border-radius: 5px; font-size: 12px; font-weight: bold;}
+        .seat.available { background-color: #f8f9fa; color: #000; border: 1px solid #dee2e6; }
+        .seat.locked { background-color: #ffc107; color: #000; pointer-events: none; }
+        .seat.booked { background-color: #dc3545; color: #fff; pointer-events: none; }
+        .screen { background: #fff; height: 30px; border-radius: 10px 10px 0 0; text-align: center; color: #000; font-weight: bold; font-size: 14px; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="bg-dark text-white text-center">
+    <div class="container mt-5">
+        <a href="javascript:history.back()" class="text-warning text-decoration-none float-start">&larr; Back</a>
+        <h2 class="mb-4">Select Your Seats</h2>
+        
+        <div class="screen mb-5 mt-4 mx-auto w-75">SCREEN THIS WAY</div>
+
+        <div id="seat-container">
+            {% for seat in seats %}
+                <div id="seat-{{ seat.id }}" class="seat 
+                    {% if seat.status == 0 %}available{% elif seat.status == 1 %}locked{% else %}booked{% endif %}" 
+                    onclick="toggleSeat('{{ seat.id }}')">
+                    {{ seat.seat_number }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const showId = "{{ show.id }}";
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(protocol + window.location.host + '/ws/seats/' + showId + '/');
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const seatDiv = document.getElementById('seat-' + data.seat_id);
+            
+            if (data.action === 'lock') {
+                seatDiv.className = 'seat locked';
+            } else if (data.action === 'unlock') {
+                seatDiv.className = 'seat available';
+            }
+        };
+
+        function toggleSeat(seatId) {
+            const seatDiv = document.getElementById('seat-' + seatId);
+            if (seatDiv.classList.contains('available')) {
+                socket.send(JSON.stringify({'seat_id': seatId, 'action': 'lock'}));
+            }
+        }
+    </script>
+</body>
+</html>

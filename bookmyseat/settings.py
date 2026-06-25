@@ -127,3 +127,40 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com', 
     'https://akhils-movie-app.onrender.com' # Use your exact new link here
 ]
+
+INSTALLED_APPS += ['debug_toolbar']
+MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + MIDDLEWARE
+INTERNAL_IPS = ['127.0.0.1']
+
+# --- CELERY & REDIS CONFIGURATION ---
+# For local Windows development, we will point this to a local Redis server.
+# When we deploy to Render, we will change this to Render's internal Redis URL.
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# We will configure the actual Email SMTP settings in the next step!
+
+# --- EMAIL CONFIGURATION ---
+# For testing: Prints the email to the terminal instead of actually sending it.
+# --- REAL SMTP EMAIL CONFIGURATION ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Replace with the Gmail address you used to generate the password
+EMAIL_HOST_USER = 'your.actual.email@gmail.com' 
+
+# Replace with the 16-letter App Password (NO SPACES!)
+# IMPORTANT: In a real company, you would put this in a .env file to hide it, 
+# but hardcoding it here is fine just to test it right now.
+EMAIL_HOST_PASSWORD = 'abcdefghijklmnop' 
+
+DEFAULT_FROM_EMAIL = f'BookMySeat <{EMAIL_HOST_USER}>'
+
+# STRIPE SETTINGS
+STRIPE_SECRET_KEY = 'sk_test_51Tm8qqK9yJTnSQDSeFdWopjbLVGfz1oIr9qUivForTcGXkE6Sr0SS5glTlKlqXgWQQllUHESktABIo3sfXqmlLZO00I5umPyYw'
+STRIPE_WEBHOOK_SECRET = 'whsec_354b8cca776dae140c56de374f7f6cc7691a036f39a6c5249813a12e2dabbdf4'

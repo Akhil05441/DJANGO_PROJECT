@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Analytics Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #333; font-size: 1.2rem; }
+        .metric { font-size: 2rem; font-weight: bold; color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <h1>System Analytics (Cached)</h1>
+    <div class="grid">
+        <div class="card">
+            <h2>Total Revenue</h2>
+            <div class="metric">₹{{ data.total_revenue }}</div>
+        </div>
+        <div class="card">
+            <h2>Cancellation Rate</h2>
+            <div class="metric" style="color: #e74c3c;">{{ data.cancellation_rate }}%</div>
+        </div>
+        <div class="card">
+            <h2>Top Movies</h2>
+            <ul>
+                {% for movie in data.popular_movies %}
+                    <li>{{ movie.title }} ({{ movie.total_bookings }} bookings)</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="card">
+            <h2>Peak Booking Hours</h2>
+            <ul>
+                {% for hour in data.peak_hours %}
+                    <li>{{ hour.hour }}:00 - {{ hour.count }} bookings</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

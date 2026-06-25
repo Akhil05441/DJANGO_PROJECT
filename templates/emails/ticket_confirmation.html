@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .ticket-box { background: white; padding: 30px; border-radius: 8px; border-top: 5px solid #ef4444; max-width: 600px; margin: auto; }
+        h1 { color: #111827; }
+        .details { margin: 20px 0; padding: 15px; background: #f9fafb; border-radius: 5px; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="ticket-box">
+        <h1>🎟️ Your Tickets are Confirmed!</h1>
+        <p>Hi {{ booking.user.username }},</p>
+        <p>Thank you for booking with BookMySeat. Here are your ticket details:</p>
+        
+        <div class="details">
+            <p><strong>Movie:</strong> {{ booking.show.movie.title }}</p>
+            <p><strong>Theater:</strong> {{ booking.show.screen_name }}</p>
+            <p><strong>Date & Time:</strong> {{ booking.show.start_time|date:"F j, Y, g:i a" }}</p>
+            <p><strong>Seats:</strong> 
+                {% for seat in booking.seats.all %}
+                    {{ seat.seat_number }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p><strong>Payment ID:</strong> {{ booking.payment_id|default:"N/A" }}</p>
+            <p><strong>Total Paid:</strong> ₹{{ booking.total_price }}</p>
+        </div>
+
+        <p>Present this email at the entrance. Enjoy the show!</p>
+        
+        <div class="footer">
+            <p>&copy; 2026 BookMySeat. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

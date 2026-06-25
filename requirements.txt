@@ -1,20 +1,55 @@
-# Core Framework
-Django>=5.0.0
-
-# Async Server (Required by your settings.py)
-daphne>=4.0.0
-
-# Payment Gateway (Requirement 4)
-stripe>=10.0.0
-
-# Background Tasks & Emails (Requirement 2)
-celery>=5.4.0
-
-# Database Cache & Celery Broker (Requirement 6)
-redis>=5.0.0
-
-# Production Server for Render
-gunicorn>=22.0.0
-
-# PostgreSQL Database Adapter for Render
-psycopg2-binary>=2.9.9
+amqp==5.3.1
+asgiref==3.11.1
+attrs==26.1.0
+autobahn==25.12.2
+Automat==25.4.16
+billiard==4.2.4
+cbor2==6.1.2
+celery==5.6.3
+certifi==2026.6.17
+cffi==2.0.0
+channels==4.3.2
+charset-normalizer==3.4.7
+click==8.4.1
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.3.0
+colorama==0.4.6
+constantly==23.10.4
+cryptography==48.0.1
+daphne==4.2.2
+Django==6.0.6
+django-debug-toolbar==6.3.0
+dnspython==2.8.0
+eventlet==0.41.0
+greenlet==3.5.1
+gunicorn==26.0.0
+hyperlink==21.0.0
+idna==3.18
+Incremental==24.11.0
+kombu==5.6.2
+msgpack==1.2.0
+packaging==26.2
+prompt_toolkit==3.0.52
+psycopg2-binary==2.9.12
+py-ubjson==0.16.1
+pycparser==3.0
+pyOpenSSL==26.2.0
+python-dateutil==2.9.0.post0
+redis==8.0.0
+requests==2.34.2
+service-identity==26.1.0
+six==1.17.0
+sqlparse==0.5.5
+stripe==15.3.0
+Twisted==26.4.0
+txaio==25.12.2
+typing_extensions==4.15.0
+tzdata==2026.2
+tzlocal==5.3.1
+ujson==5.12.1
+urllib3==2.7.0
+vine==5.1.0
+wcwidth==0.8.1
+whitenoise==6.12.0
+zope.interface==8.5

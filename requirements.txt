@@ -1,6 +1,9 @@
 # Core Framework
 Django>=5.0.0
 
+# Async Server (Required by your settings.py)
+daphne>=4.0.0
+
 # Payment Gateway (Requirement 4)
 stripe>=10.0.0
 

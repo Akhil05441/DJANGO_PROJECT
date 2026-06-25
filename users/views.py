@@ -1,27 +1,27 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count
-from django.http import JsonResponse
+from django.db.models import Count, Sum, F
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
-from .models import Movie, Show, Genre, Language  # Added Language model if you have it
-from django.http import HttpResponse
-from .tasks import send_ticket_confirmation_email
-from .models import Booking
-import json
-from django.db import transaction
-from django.utils import timezone
-from datetime import timedelta
-from .models import Seat # Make sure Seat is imported at the top
-import stripe
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.db.models import Sum, F
 from django.db.models.functions import ExtractHour
 from django.core.cache import cache
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
+from django.utils import timezone
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from datetime import timedelta
+import json
+import stripe
+
+# Model & Task Imports
+from .models import Movie, Show, Genre, Language, Booking, Seat
+from .tasks import send_ticket_confirmation_email
 
 
+# REQUIREMENT 1: Scalable Filtering & Queries
 def movie_list(request):
     # 1. Fetch baseline filter options for the sidebar checkboxes
     all_genres = Genre.objects.all()
@@ -97,6 +97,8 @@ def seat_map(request, show_id):
     seats = show.seats.all()
     return render(request, 'seat_map.html', {'show': show, 'seats': seats})
 
+
+# REQUIREMENT 2: Background Email Queue Test
 def test_email_task(request):
     # Grab the first available booking in your database to test with
     booking = Booking.objects.first()
@@ -104,24 +106,23 @@ def test_email_task(request):
     if booking:
         # THE MAGIC LINE: .delay() sends it to the Celery queue in the background!
         send_ticket_confirmation_email.delay(booking.id)
-        
         return HttpResponse(f"✅ Success! Task sent to Celery for Booking ID: {booking.id}. Check your Celery terminal!")
     else:
         return HttpResponse("⚠️ No bookings found in the database. Go to the Admin panel and create a dummy booking first.")
 
 
-# REQUIREMENT 5: Concurrency-Safe Seat Reservation
+# REQUIREMENT 5: Concurrency-Safe Seat Reservation (Fully Patched & Secure)
 def lock_seat_api(request):
     if request.method == 'POST':
-        # Assuming the frontend sends a JSON payload like {'seat_id': 12}
         try:
             data = json.loads(request.body)
             seat_id = data.get('seat_id')
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
 
-        # transaction.atomic() + select_for_update() is the exact answer 
-        # to the "prevent double booking" requirement.
+        now = timezone.now()
+
+        # transaction.atomic() + select_for_update() is the exact answer to the "prevent double booking" requirement.
         with transaction.atomic():
             try:
                 # Lock the specific row in the database so no other user can touch it
@@ -129,24 +130,29 @@ def lock_seat_api(request):
             except Seat.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Seat not found'}, status=404)
 
-            # Check if it is still available
-            if seat.status == 'AVAILABLE':
+            # Check if seat is claimable (either AVAILABLE or an old lock that has expired)
+            is_available = seat.status == 'AVAILABLE'
+            is_lock_expired = seat.status == 'LOCKED' and seat.locked_until and seat.locked_until < now
+
+            if is_available or is_lock_expired:
                 seat.status = 'LOCKED'
-                seat.locked_until = timezone.now() + timedelta(minutes=2)
+                seat.locked_until = now + timedelta(minutes=2)
                 seat.save()
                 
                 return JsonResponse({
                     'success': True, 
-                    'message': 'Seat locked for 2 minutes. Proceed to payment.'
+                    'message': 'Seat secured for 2 minutes. Proceed to checkout.'
                 })
             else:
                 return JsonResponse({
                     'success': False, 
-                    'error': 'Too late! Another user just grabbed this seat.'
+                    'error': 'This seat is actively held or booked by another user.'
                 }, status=409)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
+# REQUIREMENT 4: Payment Gateway Integration with Idempotency
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @csrf_exempt
